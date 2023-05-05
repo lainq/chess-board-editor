@@ -35,17 +35,15 @@ fn main() {
 
   queue.register_event_source(display.get_event_source());
   queue.register_event_source(timer.get_event_source());
-  match core.get_mouse_event_source() {
-    Some(mouse_event_source) => queue.register_event_source(mouse_event_source),
-    _ => {}
+  if let Some(mouse_event_source) = core.get_mouse_event_source() {
+    queue.register_event_source(mouse_event_source);
   }
-  match core.get_keyboard_event_source() {
-    Some(kb_event_source) => queue.register_event_source(kb_event_source),
-    _ => {}
+  if let Some(kb_event_source) = core.get_keyboard_event_source() {
+    queue.register_event_source(kb_event_source);
   }
 
   let mut asset_path = PathBuf::from(std::env::current_exe().unwrap().parent().unwrap());
-  for _ in (0..2) {
+  for _ in 0..2 {
     asset_path.pop();
   }
   asset_path.push("assets");

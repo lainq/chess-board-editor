@@ -1,12 +1,10 @@
+use crate::Rect;
 use allegro::{
-  Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core, Display,
-  Event::{self, MouseButtonDown},
+  Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core,
+  Event::{self, MouseButtonDown, MouseButtonUp},
   Flag,
 };
 use allegro_primitives::PrimitivesAddon;
-use allegro_sys::{ALLEGRO_DISPLAY, ALLEGRO_MOUSE_STATE};
-
-use crate::Rect;
 
 const ROWS: usize = 8;
 const COLUMNS: usize = 8;
@@ -14,33 +12,47 @@ const BOX_DIMENSION: f32 = 75.0;
 const PADDING: f32 = 5.0;
 const IMG_WIDTH: f32 = 45.0;
 
-#[derive(Default)]
+#[derive(Default, Debug, Copy, Clone)]
 pub enum Piece {
-  King,
-  Queen,
   Bishop,
+  King,
   Knight,
-  Rook,
   Pawn,
+  Queen,
+  Rook,
   #[default]
   None,
 }
 
-struct SelectedPiece {
-  pub player: usize,
-  pub piece_idx: usize,
+impl Piece {
+  fn from_usize(value: usize) -> Piece {
+    match value {
+      0 => Piece::Bishop,
+      1 => Piece::King,
+      2 => Piece::Knight,
+      3 => Piece::Pawn,
+      4 => Piece::Queen,
+      5 => Piece::Rook,
+      _ => Piece::None,
+    }
+  }
 }
 
+#[derive(Debug, Default, Copy, Clone)]
+struct PlayerPiece {
+  pub player: usize,
+  pub piece_idx: Piece,
+}
 pub struct Board {
   rect: Rect,
-  board: [[Piece; ROWS]; COLUMNS],
-  selected_piece: Option<SelectedPiece>,
+  board: [[PlayerPiece; ROWS]; COLUMNS],
+  selected_piece: Option<PlayerPiece>,
 }
 
 impl Board {
   pub fn new() -> Board {
     let board = Default::default();
-    return Board {
+    Board {
       board: board,
       rect: Rect::new(
         100.0,
@@ -49,7 +61,7 @@ impl Board {
         BOX_DIMENSION * (COLUMNS) as f32,
       ),
       selected_piece: None,
-    };
+    }
   }
 
   pub fn draw(
@@ -63,7 +75,7 @@ impl Board {
     {
       let (mut x, mut y) = (self.rect.x, self.rect.y);
       let dim = BOX_DIMENSION - (4.0 * PADDING);
-      for i in (0..2).into_iter() {
+      for i in 0..2 {
         primitives.draw_filled_rectangle(
           x,
           y,
@@ -71,7 +83,7 @@ impl Board {
           y + BOX_DIMENSION,
           Color::from_rgb(107, 107, 107),
         );
-        for j in (0..COLUMNS - 1).into_iter() {
+        for j in 0..COLUMNS - 1 {
           if j == 0 {
             primitives.draw_filled_rectangle(
               x,
@@ -95,7 +107,7 @@ impl Board {
           } else {
             match &self.selected_piece {
               Some(value) => {
-                if (i == value.player) && (j == value.piece_idx) {
+                if (i == value.player) && (j == (value.piece_idx as usize) + 1) {
                   primitives.draw_filled_rectangle(
                     x,
                     y,
@@ -140,6 +152,25 @@ impl Board {
             Color::from_rgb(240, 217, 182)
           },
         );
+        let piece = self.board[i][j];
+        match piece.piece_idx {
+          Piece::None => {}
+          _ => {
+            let dimension = BOX_DIMENSION - (PADDING * 2.0);
+            core.draw_scaled_bitmap(
+              if piece.player == 0 { black } else { white },
+              IMG_WIDTH * ((piece.piece_idx as i32) as f32),
+              0.0,
+              IMG_WIDTH,
+              IMG_WIDTH,
+              self.rect.x + ((j) as f32 * BOX_DIMENSION) + PADDING,
+              self.rect.y + ((i + 1) as f32 * BOX_DIMENSION) + PADDING,
+              dimension,
+              dimension,
+              BitmapDrawingFlags::zero(),
+            );
+          }
+        }
         curr_x += BOX_DIMENSION;
       }
       curr_x = 100.0;
@@ -158,7 +189,7 @@ impl Board {
 
         core.draw_scaled_bitmap(
           if value.player == 0 { black } else { white },
-          IMG_WIDTH * (((value.piece_idx as i32) - 1) as f32),
+          IMG_WIDTH * ((value.piece_idx as i32) as f32),
           0.0,
           IMG_WIDTH,
           IMG_WIDTH,
@@ -175,12 +206,17 @@ impl Board {
 
   pub fn select_piece(&mut self, x: f32, side: usize) {
     let idx = ((x - self.rect.x) / BOX_DIMENSION) as usize;
-    if (idx != 0) || (idx != COLUMNS - 1) {
-      self.selected_piece = Some(SelectedPiece {
+    if (idx > 0) && (idx != COLUMNS - 1) {
+      self.selected_piece = Some(PlayerPiece {
         player: side,
-        piece_idx: idx,
+        piece_idx: Piece::from_usize(idx - 1),
       });
     }
+  }
+
+  fn move_selected_piece(&mut self, y: usize, x: usize) {
+    self.board[y][x] = self.selected_piece.unwrap();
+    self.selected_piece = None;
   }
 
   pub fn event_listener(&mut self, event: &Event) {
@@ -200,6 +236,26 @@ impl Board {
             self.select_piece(x_f32, 0);
           } else if y_f32 > temp_rect.x + temp_rect.height - BOX_DIMENSION {
             self.select_piece(x_f32, 1);
+          }
+        }
+      }
+      MouseButtonUp { x, y, .. } => {
+        if self.selected_piece.is_some() {
+          let y_f32 = *y as f32;
+          let x_f32 = *x as f32;
+
+          let temp_rect = Rect::new(
+            self.rect.x,
+            self.rect.y + BOX_DIMENSION,
+            self.rect.width,
+            self.rect.height,
+          );
+          if temp_rect.contains_point(x_f32, y_f32) {
+            let x_idx = ((x_f32 - self.rect.x) / BOX_DIMENSION) as usize;
+            let y_idx = ((y_f32 - temp_rect.y) / BOX_DIMENSION) as usize;
+            self.move_selected_piece(y_idx, x_idx);
+          } else {
+            self.selected_piece = None;
           }
         }
       }
