@@ -1,10 +1,11 @@
-use allegro::{Color, Core, Display, Event, EventQueue, Timer, FRAMELESS};
+use allegro::{Bitmap, Color, Core, Display, Event, EventQueue, Timer, FRAMELESS};
+use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use board_editor::board::Board;
+use std::path::PathBuf;
 
 const DISPLAY_HEIGHT: i32 = 950;
 const DISPLAY_WIDTH: i32 = 1050;
-const BORDER_THICKNESS: i32 = 15;
 
 fn position_window_at_centre(core: &Core, display: &Display) {
   let monitor_info = core.get_monitor_info(0).unwrap();
@@ -19,6 +20,7 @@ fn position_window_at_centre(core: &Core, display: &Display) {
 
 fn main() {
   let core = Core::init().unwrap();
+  let _image_addon = ImageAddon::init(&core).unwrap();
   let primitives = PrimitivesAddon::init(&core).unwrap();
 
   let display = Display::new(&core, DISPLAY_WIDTH, DISPLAY_HEIGHT).unwrap();
@@ -42,13 +44,38 @@ fn main() {
     _ => {}
   }
 
-  let board = Board::new();
+  let mut asset_path = PathBuf::from(std::env::current_exe().unwrap().parent().unwrap());
+  for _ in (0..2) {
+    asset_path.pop();
+  }
+  asset_path.push("assets");
+  let white_pieces = Bitmap::load(
+    &core,
+    asset_path.join("white.png").display().to_string().as_str(),
+  )
+  .unwrap();
+  let black_pieces = Bitmap::load(
+    &core,
+    asset_path.join("black.png").display().to_string().as_str(),
+  )
+  .unwrap();
+  let pointer = Bitmap::load(
+    &core,
+    asset_path
+      .join("pointer.png")
+      .display()
+      .to_string()
+      .as_str(),
+  )
+  .unwrap();
+
+  let mut board = Board::new();
   let mut redraw = true;
   timer.start();
   'running: loop {
     if redraw && queue.is_empty() {
       core.clear_to_color(Color::from_rgb(22, 21, 18));
-      board.draw(&primitives);
+      board.draw(&core, &primitives, &white_pieces, &black_pieces, &pointer);
       core.flip_display();
       redraw = false;
     }
@@ -56,7 +83,9 @@ fn main() {
     match event {
       Event::DisplayClose { .. } => break 'running,
       Event::TimerTick { .. } => redraw = true,
-      _ => {}
+      _ => {
+        board.event_listener(&event);
+      }
     }
   }
 }

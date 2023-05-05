@@ -25,6 +25,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "allegro_image"
+version = "0.0.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "888429aa6920cbdc678fa335cd49addc01c22e7c67c49e1aedc124416bcc596b"
+dependencies = [
+ "allegro",
+ "allegro_image-sys",
+ "allegro_util",
+ "libc",
+]
+
+[[package]]
+name = "allegro_image-sys"
+version = "0.0.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fa13e4076c5ca98b27c3867d8443a74280704d038e8cbe708a3ca09a578ca3e"
+dependencies = [
+ "allegro_util",
+ "libc",
+]
+
+[[package]]
 name = "allegro_primitives"
 version = "0.0.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -61,6 +83,8 @@ name = "board-editor"
 version = "0.1.0"
 dependencies = [
  "allegro",
+ "allegro-sys",
+ "allegro_image",
  "allegro_primitives",
 ]
 
