@@ -39,9 +39,20 @@ impl Piece {
 }
 
 #[derive(Debug, Default, Copy, Clone)]
+pub enum Source {
+  #[default]
+  Shelf,
+  Board {
+    i: usize,
+    j: usize,
+  },
+}
+
+#[derive(Debug, Default, Copy, Clone)]
 struct PlayerPiece {
   pub player: usize,
   pub piece_idx: Piece,
+  pub source: Source,
 }
 pub struct Board {
   rect: Rect,
@@ -53,7 +64,7 @@ impl Board {
   pub fn new() -> Board {
     let board = Default::default();
     Board {
-      board: board,
+      board,
       rect: Rect::new(
         100.0,
         100.0,
@@ -139,20 +150,31 @@ impl Board {
       }
     }
     let (mut curr_x, mut curr_y, mut switch) = (self.rect.x, self.rect.y + BOX_DIMENSION, true);
-    for i in (0..COLUMNS).rev() {
-      for j in (0..ROWS).rev() {
-        primitives.draw_filled_rectangle(
-          curr_x,
-          curr_y,
-          curr_x + BOX_DIMENSION,
-          curr_y + BOX_DIMENSION,
-          if (j % 2 == 0) == switch {
-            Color::from_rgb(181, 136, 99)
-          } else {
-            Color::from_rgb(240, 217, 182)
-          },
-        );
-        let piece = self.board[i][j];
+    for k in 0..COLUMNS {
+      for n in 0..ROWS {
+        let piece = self.board[k][n];
+        if self.selected_piece.is_some() {
+          match self.selected_piece.unwrap().source {
+            Source::Board { i, j } => {
+              if (i == k) && (j == n) {
+                primitives.draw_filled_rectangle(
+                  curr_x,
+                  curr_y,
+                  curr_x + BOX_DIMENSION,
+                  curr_y + BOX_DIMENSION,
+                  Color::from_rgb(84, 126, 55),
+                );
+              } else {
+                self.draw_boxes(primitives, curr_x, curr_y, n, switch);
+              }
+            }
+            _ => {
+              self.draw_boxes(primitives, curr_x, curr_y, n, switch);
+            }
+          }
+        } else {
+          self.draw_boxes(primitives, curr_x, curr_y, n, switch);
+        }
         match piece.piece_idx {
           Piece::None => {}
           _ => {
@@ -163,8 +185,8 @@ impl Board {
               0.0,
               IMG_WIDTH,
               IMG_WIDTH,
-              self.rect.x + ((j) as f32 * BOX_DIMENSION) + PADDING,
-              self.rect.y + ((i + 1) as f32 * BOX_DIMENSION) + PADDING,
+              self.rect.x + ((n) as f32 * BOX_DIMENSION) + PADDING,
+              self.rect.y + ((k + 1) as f32 * BOX_DIMENSION) + PADDING,
               dimension,
               dimension,
               BitmapDrawingFlags::zero(),
@@ -204,18 +226,65 @@ impl Board {
     }
   }
 
-  pub fn select_piece(&mut self, x: f32, side: usize) {
+  fn draw_boxes(
+    &self,
+    primitives: &PrimitivesAddon,
+    curr_x: f32,
+    curr_y: f32,
+    n: usize,
+    switch: bool,
+  ) {
+    primitives.draw_filled_rectangle(
+      curr_x,
+      curr_y,
+      curr_x + BOX_DIMENSION,
+      curr_y + BOX_DIMENSION,
+      if (n % 2 == 0) == switch {
+        Color::from_rgb(181, 136, 99)
+      } else {
+        Color::from_rgb(240, 217, 182)
+      },
+    );
+  }
+
+  pub fn select_piece_from_shelf(&mut self, x: f32, side: usize) {
     let idx = ((x - self.rect.x) / BOX_DIMENSION) as usize;
     if (idx > 0) && (idx != COLUMNS - 1) {
       self.selected_piece = Some(PlayerPiece {
         player: side,
         piece_idx: Piece::from_usize(idx - 1),
+        source: Source::Shelf,
       });
     }
   }
 
+  pub fn select_piece_from_board(&mut self, x: f32, y: f32) {
+    let idx_x = ((x - self.rect.x) / BOX_DIMENSION) as usize;
+    let idx_y = (((y - self.rect.y) / BOX_DIMENSION) as usize) - 1;
+    if (idx_x < COLUMNS) && (idx_y < ROWS) {
+      let piece = self.board[idx_y][idx_x];
+      match piece.piece_idx {
+        Piece::None => {}
+        _ => {
+          self.selected_piece = Some(PlayerPiece {
+            player: piece.player,
+            piece_idx: piece.piece_idx,
+            source: Source::Board { i: idx_y, j: idx_x },
+          });
+        }
+      }
+    }
+  }
+
   fn move_selected_piece(&mut self, y: usize, x: usize) {
-    self.board[y][x] = self.selected_piece.unwrap();
+    let piece = self.selected_piece.unwrap();
+    self.board[y][x] = piece;
+    if let Source::Board { i, j } = piece.source {
+      self.board[i][j] = PlayerPiece {
+        piece_idx: Piece::None,
+        ..piece
+      };
+    }
     self.selected_piece = None;
   }
 
@@ -233,9 +302,11 @@ impl Board {
         );
         if temp_rect.contains_point(x_f32, y_f32) {
           if y_f32 < self.rect.x + BOX_DIMENSION {
-            self.select_piece(x_f32, 0);
+            self.select_piece_from_shelf(x_f32, 0);
           } else if y_f32 > temp_rect.x + temp_rect.height - BOX_DIMENSION {
-            self.select_piece(x_f32, 1);
+            self.select_piece_from_shelf(x_f32, 1);
+          } else {
+            self.select_piece_from_board(x_f32, y_f32);
           }
         }
       }
@@ -255,6 +326,9 @@ impl Board {
             let y_idx = ((y_f32 - temp_rect.y) / BOX_DIMENSION) as usize;
             self.move_selected_piece(y_idx, x_idx);
           } else {
+            if let Source::Board { i, j } = self.selected_piece.unwrap().source {
+              self.board[i][j].piece_idx = Piece::None;
+            }
             self.selected_piece = None;
           }
         }
