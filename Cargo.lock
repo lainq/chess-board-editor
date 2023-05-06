@@ -25,6 +25,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "allegro_font"
+version = "0.0.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db238e7cc1786e29a76351de0a3674a89c923a58a92262e489c0a5114c8b451b"
+dependencies = [
+ "allegro",
+ "allegro-sys",
+ "allegro_font-sys",
+ "allegro_util",
+ "libc",
+]
+
+[[package]]
+name = "allegro_font-sys"
+version = "0.0.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb7f196e24175f5f5cc0aaa161c31f761c54630f141e5699c9316e1a677b53a6"
+dependencies = [
+ "allegro-sys",
+ "allegro_util",
+ "libc",
+]
+
+[[package]]
 name = "allegro_image"
 version = "0.0.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -70,6 +94,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "allegro_ttf"
+version = "0.0.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "563a128324e4231ab1620771b00c2840dcca855d1cf3018f43d1161166dd476b"
+dependencies = [
+ "allegro",
+ "allegro_font",
+ "allegro_ttf-sys",
+ "allegro_util",
+ "libc",
+]
+
+[[package]]
+name = "allegro_ttf-sys"
+version = "0.0.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8af8d6a3493b1eaec26b702ef155066d694667f59cb1b98d3dbe8be5d17a8536"
+dependencies = [
+ "allegro-sys",
+ "allegro_font-sys",
+ "allegro_util",
+ "libc",
+]
+
+[[package]]
 name = "allegro_util"
 version = "0.0.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -84,8 +133,10 @@ version = "0.1.0"
 dependencies = [
  "allegro",
  "allegro-sys",
+ "allegro_font",
  "allegro_image",
  "allegro_primitives",
+ "allegro_ttf",
 ]
 
 [[package]]

@@ -288,7 +288,7 @@ impl Board {
     self.selected_piece = None;
   }
 
-  pub fn event_listener(&mut self, event: &Event) {
+  pub fn event_listener(&mut self, event: &Event) -> bool {
     match event {
       MouseButtonDown { x, y, .. } => {
         let x_f32 = *x as f32;
@@ -308,6 +308,7 @@ impl Board {
           } else {
             self.select_piece_from_board(x_f32, y_f32);
           }
+          return true;
         }
       }
       MouseButtonUp { x, y, .. } => {
@@ -331,9 +332,20 @@ impl Board {
             }
             self.selected_piece = None;
           }
+          return true;
         }
       }
       _ => {}
     }
+    false
+  }
+
+  pub fn get_dropdown_rect(&self, width: f32, height: f32) -> Rect {
+    Rect::new(
+      self.rect.x + (BOX_DIMENSION * COLUMNS as f32) + 30.0,
+      self.rect.y + 100.0,
+      width,
+      height,
+    )
   }
 }

@@ -8,5 +8,7 @@ edition = "2021"
 [dependencies]
 allegro = "0.0.44"
 allegro-sys = "0.0.44"
+allegro_font = "0.0.44"
 allegro_image = "0.0.44"
 allegro_primitives = "0.0.44"
+allegro_ttf = "0.0.44"
