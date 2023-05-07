@@ -3,14 +3,20 @@ use allegro_font::FontAddon;
 use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use allegro_ttf::{TtfAddon, TtfFlags};
-use board_editor::{board::Board, dropdown::Dropdown, Rect, button::{Button, self}};
+use board_editor::{
+  board::Board,
+  button::{self, Button},
+  dropdown::Dropdown,
+  fen::generate_fen_from_board,
+  Rect,
+};
 use std::path::PathBuf;
 
 const DISPLAY_HEIGHT: i32 = 950;
 const DISPLAY_WIDTH: i32 = 1050;
 
-const INP_WIDTH:f32 = 270.0;
-const INP_HEIGHT:f32 = 40.0;
+const INP_WIDTH: f32 = 270.0;
+const INP_HEIGHT: f32 = 40.0;
 
 fn position_window_at_centre(core: &Core, display: &Display) {
   let monitor_info = core.get_monitor_info(0).unwrap();
@@ -91,11 +97,33 @@ fn main() {
   );
 
   let y = dropdown_rect.height + dropdown_rect.y + (INP_HEIGHT * 2.0) + 50.0;
-let mut buttons: [Button; 3] = [
-     Button::new(Rect::new(dropdown_rect.x, y, INP_WIDTH, INP_HEIGHT), "STARTING POSITION", &font),
-    Button::new(Rect::new(dropdown_rect.x, y + INP_HEIGHT + 10.0, INP_WIDTH, INP_HEIGHT), "CLEAR BOARD", &font),
-    Button::new(Rect::new(dropdown_rect.x, y + INP_HEIGHT * 2.0 + 20.0, INP_WIDTH, INP_HEIGHT), "FLIP DISPLAY", &font),
-];
+  let mut buttons: [Button; 3] = [
+    Button::new(
+      Rect::new(dropdown_rect.x, y, INP_WIDTH, INP_HEIGHT),
+      "STARTING POSITION",
+      &font,
+    ),
+    Button::new(
+      Rect::new(
+        dropdown_rect.x,
+        y + INP_HEIGHT + 10.0,
+        INP_WIDTH,
+        INP_HEIGHT,
+      ),
+      "CLEAR BOARD",
+      &font,
+    ),
+    Button::new(
+      Rect::new(
+        dropdown_rect.x,
+        y + INP_HEIGHT * 2.0 + 20.0,
+        INP_WIDTH,
+        INP_HEIGHT,
+      ),
+      "FLIP DISPLAY",
+      &font,
+    ),
+  ];
 
   let mut redraw = true;
   timer.start();
@@ -117,20 +145,21 @@ let mut buttons: [Button; 3] = [
       Event::TimerTick { .. } => redraw = true,
       _ => {
         if !board.event_listener(&event) {
-          dropdown.event_listener(&event) ;
+          dropdown.event_listener(&event);
 
           let mut idx = 0;
-            for button in buttons.iter_mut() {
-              if button.event_listener(&event) {
-                match idx {
-                  0 => board.set_starting_position(),
-                  1 => board.clear_board(),
-                  2 => board.flip_board(),
-                  _ => {}
-                }
+          for button in buttons.iter_mut() {
+            if button.event_listener(&event) {
+              match idx {
+                0 => board.set_starting_position(),
+                1 => board.clear_board(),
+                2 => board.flip_board(),
+                _ => {}
               }
-              idx += 1;
+              generate_fen_from_board(board.get_board(), dropdown.get_selected_item_idx() as usize);
             }
+            idx += 1;
+          }
         }
       }
     }

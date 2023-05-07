@@ -1,10 +1,7 @@
-use allegro_font::Font;
-use board::Board;
-use button::Button;
-
 pub mod board;
-pub mod dropdown;
 pub mod button;
+pub mod dropdown;
+pub mod fen;
 
 #[derive(Clone, Copy)]
 pub struct Rect {
@@ -30,4 +27,3 @@ impl Rect {
     x_check && y_check
   }
 }
-

@@ -1,4 +1,4 @@
-use crate::Rect;
+use crate::{fen::generate_fen_from_board, Rect};
 use allegro::{
   Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core,
   Event::{self, MouseButtonDown, MouseButtonUp},
@@ -6,8 +6,8 @@ use allegro::{
 };
 use allegro_primitives::PrimitivesAddon;
 
-const ROWS: usize = 8;
-const COLUMNS: usize = 8;
+pub const ROWS: usize = 8;
+pub const COLUMNS: usize = 8;
 const BOX_DIMENSION: f32 = 75.0;
 const PADDING: f32 = 5.0;
 const IMG_WIDTH: f32 = 45.0;
@@ -49,7 +49,7 @@ pub enum Source {
 }
 
 #[derive(Debug, Default, Copy, Clone)]
-struct PlayerPiece {
+pub struct PlayerPiece {
   pub player: usize,
   pub piece_idx: Piece,
   pub source: Source,
@@ -60,7 +60,7 @@ pub struct Board {
   selected_piece: Option<PlayerPiece>,
   // the player at the bottom
   // i couldn't find a better variable name
-  player_pov: usize
+  player_pov: usize,
 }
 
 impl Board {
@@ -75,7 +75,7 @@ impl Board {
         BOX_DIMENSION * (COLUMNS) as f32,
       ),
       selected_piece: None,
-      player_pov: 0
+      player_pov: 0,
     }
   }
 
@@ -184,7 +184,11 @@ impl Board {
           _ => {
             let dimension = BOX_DIMENSION - (PADDING * 2.0);
             core.draw_scaled_bitmap(
-              if piece.player == self.player_pov { black } else { white },
+              if piece.player == self.player_pov {
+                black
+              } else {
+                white
+              },
               IMG_WIDTH * ((piece.piece_idx as i32) as f32),
               0.0,
               IMG_WIDTH,
@@ -214,7 +218,11 @@ impl Board {
         y -= 50 + (IMG_WIDTH as i32 / 2);
 
         core.draw_scaled_bitmap(
-          if value.player == self.player_pov { black } else { white },
+          if value.player == self.player_pov {
+            black
+          } else {
+            white
+          },
           IMG_WIDTH * ((value.piece_idx as i32) as f32),
           0.0,
           IMG_WIDTH,
@@ -354,33 +362,47 @@ impl Board {
   }
 
   pub fn set_starting_position(&mut self) {
-    let pieces = 
-      [Piece::Rook, Piece::Knight, Piece::Bishop, Piece::Queen, Piece::King, Piece::Bishop, Piece::Knight, Piece::Rook];
+    let pieces = [
+      Piece::Rook,
+      Piece::Knight,
+      Piece::Bishop,
+      Piece::Queen,
+      Piece::King,
+      Piece::Bishop,
+      Piece::Knight,
+      Piece::Rook,
+    ];
     self.clear_board();
     for i in 0..COLUMNS {
       if (i == 0) || (i == COLUMNS - 1) {
-        self.board[i] = pieces.map(|piece:Piece| -> PlayerPiece {
-          return PlayerPiece{ player: (i != 0) as usize, 
-          piece_idx: piece, source: Source::Shelf};
+        self.board[i] = pieces.map(|piece: Piece| -> PlayerPiece {
+          return PlayerPiece {
+            player: (i != 0) as usize,
+            piece_idx: piece,
+            source: Source::Shelf,
+          };
         });
       }
       if (i == 1) || (i == COLUMNS - 2) {
         for j in 0..ROWS {
-          self.board[i][j] = PlayerPiece{
+          self.board[i][j] = PlayerPiece {
             piece_idx: Piece::Pawn,
             source: Source::Shelf,
-            player: (i != 1) as usize
+            player: (i != 1) as usize,
           }
         }
       }
     }
-    
   }
 
   pub fn flip_board(&mut self) {
-    self.player_pov = if self.player_pov == 1 { 0} else {1};
+    self.player_pov = if self.player_pov == 1 { 0 } else { 1 };
   }
   pub fn clear_board(&mut self) {
     self.board = Default::default();
+  }
+
+  pub fn get_board(&self) -> [[PlayerPiece; COLUMNS]; ROWS] {
+    return self.board;
   }
 }
