@@ -1,11 +1,17 @@
+use allegro_font::Font;
+use board::Board;
+use button::Button;
+
 pub mod board;
 pub mod dropdown;
+pub mod button;
 
+#[derive(Clone, Copy)]
 pub struct Rect {
-  x: f32,
-  y: f32,
-  width: f32,
-  height: f32,
+  pub x: f32,
+  pub y: f32,
+  pub width: f32,
+  pub height: f32,
 }
 
 impl Rect {
@@ -25,4 +31,3 @@ impl Rect {
   }
 }
 
-// TODO: fix the thingy with lower blocks

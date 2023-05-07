@@ -3,11 +3,14 @@ use allegro_font::FontAddon;
 use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use allegro_ttf::{TtfAddon, TtfFlags};
-use board_editor::{board::Board, dropdown::Dropdown};
+use board_editor::{board::Board, dropdown::Dropdown, Rect, button::{Button, self}};
 use std::path::PathBuf;
 
 const DISPLAY_HEIGHT: i32 = 950;
 const DISPLAY_WIDTH: i32 = 1050;
+
+const INP_WIDTH:f32 = 270.0;
+const INP_HEIGHT:f32 = 40.0;
 
 fn position_window_at_centre(core: &Core, display: &Display) {
   let monitor_info = core.get_monitor_info(0).unwrap();
@@ -79,12 +82,20 @@ fn main() {
     .unwrap();
 
   let mut board = Board::new();
+  let dropdown_rect = board.get_dropdown_rect(INP_WIDTH, INP_HEIGHT);
   let mut dropdown = Dropdown::new(
-    board.get_dropdown_rect(270.0, 40.0),
+    dropdown_rect,
     vec!["Black to play", "White to play"],
     0,
     &font,
   );
+
+  let y = dropdown_rect.height + dropdown_rect.y + (INP_HEIGHT * 2.0) + 50.0;
+let mut buttons: [Button; 3] = [
+     Button::new(Rect::new(dropdown_rect.x, y, INP_WIDTH, INP_HEIGHT), "STARTING POSITION", &font),
+    Button::new(Rect::new(dropdown_rect.x, y + INP_HEIGHT + 10.0, INP_WIDTH, INP_HEIGHT), "CLEAR BOARD", &font),
+    Button::new(Rect::new(dropdown_rect.x, y + INP_HEIGHT * 2.0 + 20.0, INP_WIDTH, INP_HEIGHT), "FLIP DISPLAY", &font),
+];
 
   let mut redraw = true;
   timer.start();
@@ -94,6 +105,9 @@ fn main() {
       board.draw(&core, &primitives, &white_pieces, &black_pieces, &pointer);
 
       dropdown.draw(&core, &primitives, &font);
+      for button in buttons.iter() {
+        button.draw(&core, &primitives, &font);
+      }
       core.flip_display();
       redraw = false;
     }
@@ -103,7 +117,20 @@ fn main() {
       Event::TimerTick { .. } => redraw = true,
       _ => {
         if !board.event_listener(&event) {
-          dropdown.event_listener(&event);
+          dropdown.event_listener(&event) ;
+
+          let mut idx = 0;
+            for button in buttons.iter_mut() {
+              if button.event_listener(&event) {
+                match idx {
+                  0 => board.set_starting_position(),
+                  1 => board.clear_board(),
+                  2 => board.flip_board(),
+                  _ => {}
+                }
+              }
+              idx += 1;
+            }
         }
       }
     }

@@ -58,6 +58,9 @@ pub struct Board {
   rect: Rect,
   board: [[PlayerPiece; ROWS]; COLUMNS],
   selected_piece: Option<PlayerPiece>,
+  // the player at the bottom
+  // i couldn't find a better variable name
+  player_pov: usize
 }
 
 impl Board {
@@ -72,6 +75,7 @@ impl Board {
         BOX_DIMENSION * (COLUMNS) as f32,
       ),
       selected_piece: None,
+      player_pov: 0
     }
   }
 
@@ -131,7 +135,7 @@ impl Board {
               None => {}
             }
             core.draw_scaled_bitmap(
-              if i == 0 { black } else { white },
+              if i == self.player_pov { black } else { white },
               IMG_WIDTH * ((j - 1) as f32),
               0.0,
               IMG_WIDTH,
@@ -180,7 +184,7 @@ impl Board {
           _ => {
             let dimension = BOX_DIMENSION - (PADDING * 2.0);
             core.draw_scaled_bitmap(
-              if piece.player == 0 { black } else { white },
+              if piece.player == self.player_pov { black } else { white },
               IMG_WIDTH * ((piece.piece_idx as i32) as f32),
               0.0,
               IMG_WIDTH,
@@ -210,7 +214,7 @@ impl Board {
         y -= 50 + (IMG_WIDTH as i32 / 2);
 
         core.draw_scaled_bitmap(
-          if value.player == 0 { black } else { white },
+          if value.player == self.player_pov { black } else { white },
           IMG_WIDTH * ((value.piece_idx as i32) as f32),
           0.0,
           IMG_WIDTH,
@@ -343,9 +347,40 @@ impl Board {
   pub fn get_dropdown_rect(&self, width: f32, height: f32) -> Rect {
     Rect::new(
       self.rect.x + (BOX_DIMENSION * COLUMNS as f32) + 30.0,
-      self.rect.y + 100.0,
+      self.rect.y,
       width,
       height,
     )
+  }
+
+  pub fn set_starting_position(&mut self) {
+    let pieces = 
+      [Piece::Rook, Piece::Knight, Piece::Bishop, Piece::Queen, Piece::King, Piece::Bishop, Piece::Knight, Piece::Rook];
+    self.clear_board();
+    for i in 0..COLUMNS {
+      if (i == 0) || (i == COLUMNS - 1) {
+        self.board[i] = pieces.map(|piece:Piece| -> PlayerPiece {
+          return PlayerPiece{ player: (i != 0) as usize, 
+          piece_idx: piece, source: Source::Shelf};
+        });
+      }
+      if (i == 1) || (i == COLUMNS - 2) {
+        for j in 0..ROWS {
+          self.board[i][j] = PlayerPiece{
+            piece_idx: Piece::Pawn,
+            source: Source::Shelf,
+            player: (i != 1) as usize
+          }
+        }
+      }
+    }
+    
+  }
+
+  pub fn flip_board(&mut self) {
+    self.player_pov = if self.player_pov == 1 { 0} else {1};
+  }
+  pub fn clear_board(&mut self) {
+    self.board = Default::default();
   }
 }

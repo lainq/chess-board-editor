@@ -97,7 +97,7 @@ impl Dropdown {
     }
   }
 
-  pub fn event_listener(&mut self, event: &Event) -> bool {
+  pub fn event_listener(&mut self, event: &Event) -> u8 {
     match event {
       Event::MouseButtonDown { x, y, .. } => {
         let xpos = *x as f32;
@@ -142,15 +142,13 @@ impl Dropdown {
             }
             _ => {}
           }
-        } else {
-          return false;
-        }
+        } 
       }
       Event::MouseAxes { y, .. } => {
         if self.is_focused {
           let y_diff = *y as f32 - (self.rect.y + self.rect.height);
           if y_diff > (self.rect.height * self.items.len() as f32) {
-            return false;
+            return 1;
           }
           let curr_idx = (((y_diff / self.rect.height).ceil()) as usize) as i32;
           self.hover_element_idx = curr_idx as usize;
@@ -158,6 +156,6 @@ impl Dropdown {
       }
       _ => {}
     }
-    false
+    return 0;
   }
 }
