@@ -1,4 +1,4 @@
-use crate::{fen::generate_fen_from_board, Rect};
+use crate::Rect;
 use allegro::{
   Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core,
   Event::{self, MouseButtonDown, MouseButtonUp},
@@ -376,11 +376,11 @@ impl Board {
     for i in 0..COLUMNS {
       if (i == 0) || (i == COLUMNS - 1) {
         self.board[i] = pieces.map(|piece: Piece| -> PlayerPiece {
-          return PlayerPiece {
+          PlayerPiece {
             player: (i != 0) as usize,
             piece_idx: piece,
             source: Source::Shelf,
-          };
+          }
         });
       }
       if (i == 1) || (i == COLUMNS - 2) {
@@ -403,6 +403,6 @@ impl Board {
   }
 
   pub fn get_board(&self) -> [[PlayerPiece; COLUMNS]; ROWS] {
-    return self.board;
+    self.board
   }
 }

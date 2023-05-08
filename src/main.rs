@@ -1,10 +1,10 @@
 use allegro::{Bitmap, Color, Core, Display, Event, EventQueue, Flag, Timer, FRAMELESS};
-use allegro_font::{FontAddon, Font};
+use allegro_font::FontAddon;
 use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use allegro_ttf::{TtfAddon, TtfFlags};
 use board_editor::{
-  board::Board, button::Button, checkbox::{CheckBox, CheckBoxGroup}, dropdown::Dropdown,
+  board::Board, button::Button, checkbox::CheckBoxGroup, dropdown::Dropdown,
   fen::generate_fen_from_board, Rect,
 };
 use std::path::PathBuf;
@@ -94,14 +94,21 @@ fn main() {
   );
 
   let mut check1 = CheckBoxGroup::new(
-    "White", dropdown_rect.x + 20.0, dropdown_rect.y +
-      dropdown_rect.height + 150.0, 20.0, vec!["O-O", 
-    "O-O-O"], &font
+    "White",
+    dropdown_rect.x + 20.0,
+    dropdown_rect.y + dropdown_rect.height + 150.0,
+    20.0,
+    vec!["O-O", "O-O-O"],
+    &font,
   );
-  let mut check2 = 
-    CheckBoxGroup::new(
-      "Black ", dropdown_rect.x + 20.0, check1.get_next_y(), 20.0,
-      vec!["O-O", "O-O-O"], &font);
+  let mut check2 = CheckBoxGroup::new(
+    "Black ",
+    dropdown_rect.x + 20.0,
+    check1.get_next_y(),
+    20.0,
+    vec!["O-O", "O-O-O"],
+    &font,
+  );
 
   let y = check2.get_next_y();
   let mut buttons: [Button; 3] = [
@@ -132,7 +139,6 @@ fn main() {
     ),
   ];
 
-  
   let mut redraw = true;
   timer.start();
   'running: loop {
@@ -159,8 +165,7 @@ fn main() {
         if !board.event_listener(&event) {
           dropdown.event_listener(&event);
 
-          let mut idx = 0;
-          for button in buttons.iter_mut() {
+          for (idx, button) in buttons.iter_mut().enumerate() {
             if button.event_listener(&event) {
               match idx {
                 0 => board.set_starting_position(),
@@ -170,7 +175,6 @@ fn main() {
               }
               generate_fen_from_board(board.get_board(), dropdown.get_selected_item_idx() as usize);
             }
-            idx += 1;
           }
           if !check1.event_listener(&event) {
             check2.event_listener(&event);

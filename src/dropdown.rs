@@ -156,10 +156,10 @@ impl Dropdown {
       }
       _ => {}
     }
-    return 0;
+    0
   }
 
   pub fn get_selected_item_idx(&self) -> i32 {
-    return self.selected_idx;
+    self.selected_idx
   }
 }

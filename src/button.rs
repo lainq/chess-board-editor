@@ -56,6 +56,6 @@ impl Button {
       }
       _ => {}
     }
-    return false;
+    false
   }
 }
