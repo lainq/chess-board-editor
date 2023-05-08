@@ -1,14 +1,11 @@
 use allegro::{Bitmap, Color, Core, Display, Event, EventQueue, Flag, Timer, FRAMELESS};
-use allegro_font::FontAddon;
+use allegro_font::{FontAddon, Font};
 use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use allegro_ttf::{TtfAddon, TtfFlags};
 use board_editor::{
-  board::Board,
-  button::{self, Button},
-  dropdown::Dropdown,
-  fen::generate_fen_from_board,
-  Rect,
+  board::Board, button::Button, checkbox::{CheckBox, CheckBoxGroup}, dropdown::Dropdown,
+  fen::generate_fen_from_board, Rect,
 };
 use std::path::PathBuf;
 
@@ -82,7 +79,7 @@ fn main() {
   let font = ttf_addon
     .load_ttf_font(
       asset_path.join("font.ttf").display().to_string().as_str(),
-      14,
+      15,
       TtfFlags::zero(),
     )
     .unwrap();
@@ -96,7 +93,17 @@ fn main() {
     &font,
   );
 
-  let y = dropdown_rect.height + dropdown_rect.y + (INP_HEIGHT * 2.0) + 50.0;
+  let mut check1 = CheckBoxGroup::new(
+    "White", dropdown_rect.x + 20.0, dropdown_rect.y +
+      dropdown_rect.height + 150.0, 20.0, vec!["O-O", 
+    "O-O-O"], &font
+  );
+  let mut check2 = 
+    CheckBoxGroup::new(
+      "Black ", dropdown_rect.x + 20.0, check1.get_next_y(), 20.0,
+      vec!["O-O", "O-O-O"], &font);
+
+  let y = check2.get_next_y();
   let mut buttons: [Button; 3] = [
     Button::new(
       Rect::new(dropdown_rect.x, y, INP_WIDTH, INP_HEIGHT),
@@ -125,6 +132,7 @@ fn main() {
     ),
   ];
 
+  
   let mut redraw = true;
   timer.start();
   'running: loop {
@@ -136,6 +144,10 @@ fn main() {
       for button in buttons.iter() {
         button.draw(&core, &primitives, &font);
       }
+
+      check1.draw(&core, &primitives, &font);
+      check2.draw(&core, &primitives, &font);
+
       core.flip_display();
       redraw = false;
     }
@@ -159,6 +171,9 @@ fn main() {
               generate_fen_from_board(board.get_board(), dropdown.get_selected_item_idx() as usize);
             }
             idx += 1;
+          }
+          if !check1.event_listener(&event) {
+            check2.event_listener(&event);
           }
         }
       }
