@@ -5,6 +5,7 @@ use allegro::{
   Flag,
 };
 use allegro_primitives::PrimitivesAddon;
+use clipboard::{ClipboardProvider, ClipboardContext};
 
 pub const ROWS: usize = 8;
 pub const COLUMNS: usize = 8;
@@ -403,7 +404,9 @@ impl Board {
   }
 
   pub fn generate_fen(&self, castle_white:(bool, bool), castle_black:(bool, bool)) {
-    generate_fen_from_board(self.board, self.player_pov, 
+    let notation = generate_fen_from_board(self.board, self.player_pov, 
       castle_white, castle_black);
+    let mut ctx:ClipboardContext = ClipboardProvider::new().unwrap();
+    ctx.set_contents(notation).unwrap();
   }
 }

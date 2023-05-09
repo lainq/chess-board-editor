@@ -3,8 +3,9 @@ pub mod button;
 pub mod checkbox;
 pub mod dropdown;
 pub mod fen;
+pub mod modal_input;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Rect {
   pub x: f32,
   pub y: f32,

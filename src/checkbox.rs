@@ -6,7 +6,7 @@ use allegro_primitives::PrimitivesAddon;
 const BORDER_WIDTH: f32 = 3.0;
 const MARGIN: f32 = 10.0;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct CheckBox {
   rect: Rect,
   text: &'static str,
@@ -96,7 +96,6 @@ impl CheckBox {
   }
 }
 
-#[derive(Clone)]
 pub struct CheckBoxGroup {
   components: Vec<CheckBox>,
   label: &'static str,

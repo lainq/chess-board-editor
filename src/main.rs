@@ -1,11 +1,11 @@
-use allegro::{Bitmap, Color, Core, Display, Event, EventQueue, Flag, Timer, FRAMELESS};
+use allegro::{Bitmap, Color, Core, Display, Event, EventQueue, Flag, Timer, FRAMELESS, BitmapDrawingFlags};
 use allegro_font::FontAddon;
 use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use allegro_ttf::{TtfAddon, TtfFlags};
 use board_editor::{
   board::Board, button::Button, checkbox::CheckBoxGroup, dropdown::Dropdown,
-  fen::generate_fen_from_board, Rect,
+  fen::generate_fen_from_board, Rect, modal_input::ModalInput,
 };
 use std::path::PathBuf;
 
@@ -86,6 +86,11 @@ fn main() {
 
   let mut board = Board::new();
   let dropdown_rect = board.get_dropdown_rect(INP_WIDTH, INP_HEIGHT);
+
+  let dropdown_x = dropdown_rect.x;
+  let dropdown_y = dropdown_rect.y;
+  let dropdown_height = dropdown_rect.height;
+
   let mut dropdown = Dropdown::new(
     dropdown_rect,
     vec!["Black to play", "White to play"],
@@ -95,15 +100,15 @@ fn main() {
 
   let mut check1 = CheckBoxGroup::new(
     "White",
-    dropdown_rect.x + 20.0,
-    dropdown_rect.y + dropdown_rect.height + 150.0,
+    dropdown_x + 20.0,
+    dropdown_y + dropdown_height + 150.0,
     20.0,
     vec!["O-O", "O-O-O"],
     &font,
   );
   let mut check2 = CheckBoxGroup::new(
     "Black ",
-    dropdown_rect.x + 20.0,
+    dropdown_x + 20.0,
     check1.get_next_y(),
     20.0,
     vec!["O-O", "O-O-O"],
@@ -113,13 +118,13 @@ fn main() {
   let y = check2.get_next_y();
   let mut buttons: [Button; 4] = [
     Button::new(
-      Rect::new(dropdown_rect.x, y, INP_WIDTH, INP_HEIGHT),
+      Rect::new(dropdown_x, y, INP_WIDTH, INP_HEIGHT),
       "STARTING POSITION",
       &font,
     ),
     Button::new(
       Rect::new(
-        dropdown_rect.x,
+        dropdown_x,
         y + INP_HEIGHT + 10.0,
         INP_WIDTH,
         INP_HEIGHT,
@@ -129,7 +134,7 @@ fn main() {
     ),
     Button::new(
       Rect::new(
-        dropdown_rect.x,
+        dropdown_x,
         y + INP_HEIGHT * 2.0 + 20.0,
         INP_WIDTH,
         INP_HEIGHT,
@@ -138,16 +143,30 @@ fn main() {
       &font,
     ),
     Button::new(
-      Rect::new(dropdown_rect.x,
+      Rect::new(dropdown_x,
       y + (INP_HEIGHT * 3.0) + 30.0,
       INP_WIDTH,
       INP_HEIGHT),
-      "GENERATE FEN",
+      "COPY FEN TO CLIPBOARD",
       &font
     )
   ];
 
+  // check
+  let mut inp = ModalInput::new(
+    &core,
+    &display,
+    DISPLAY_WIDTH,
+    DISPLAY_HEIGHT,
+    50.0, false, &font
+  );
+  inp.set_is_open(false);
+  let mut modal_input_box:Option<&ModalInput> = Some(&inp);
+
   let mut redraw = true;
+  let mut can_listen = true;
+  let mut status_message:Option<&str> = None;
+
   timer.start();
   'running: loop {
     if redraw && queue.is_empty() {
@@ -162,6 +181,15 @@ fn main() {
       check1.draw(&core, &primitives, &font);
       check2.draw(&core, &primitives, &font);
 
+      match modal_input_box {
+        Some(value) => {
+          value.draw(&core, &primitives, &font);
+        },
+        _ => {}
+      }
+      if let Some(msg) = &status_message {
+        core.draw_text()
+      }
       core.flip_display();
       redraw = false;
     }
@@ -170,22 +198,27 @@ fn main() {
       Event::DisplayClose { .. } => break 'running,
       Event::TimerTick { .. } => redraw = true,
       _ => {
-        if !board.event_listener(&event) {
-          dropdown.event_listener(&event);
-
-          for (idx, button) in buttons.iter_mut().enumerate() {
-            if button.event_listener(&event) {
-              match idx {
-                0 => board.set_starting_position(),
-                1 => board.clear_board(),
-                2 => board.flip_board(),
-                3 => board.generate_fen(check1.get_values(), check2.get_values()),
-                _ => {}
+        if modal_input_box.is_some() {
+          can_listen = !(modal_input_box.unwrap().is_open());
+        }
+        if can_listen {
+          if !board.event_listener(&event) {
+            dropdown.event_listener(&event);
+  
+            for (idx, button) in buttons.iter_mut().enumerate() {
+              if button.event_listener(&event) {
+                match idx {
+                  0 => board.set_starting_position(),
+                  1 => board.clear_board(),
+                  2 => board.flip_board(),
+                  3 => board.generate_fen(check1.get_values(), check2.get_values()),
+                  _ => {}
+                }
               }
             }
-          }
-          if !check1.event_listener(&event) {
-            check2.event_listener(&event);
+            if !check1.event_listener(&event) {
+              check2.event_listener(&event);
+            }
           }
         }
       }
