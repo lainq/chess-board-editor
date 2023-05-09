@@ -111,7 +111,7 @@ fn main() {
   );
 
   let y = check2.get_next_y();
-  let mut buttons: [Button; 3] = [
+  let mut buttons: [Button; 4] = [
     Button::new(
       Rect::new(dropdown_rect.x, y, INP_WIDTH, INP_HEIGHT),
       "STARTING POSITION",
@@ -137,6 +137,14 @@ fn main() {
       "FLIP DISPLAY",
       &font,
     ),
+    Button::new(
+      Rect::new(dropdown_rect.x,
+      y + (INP_HEIGHT * 3.0) + 30.0,
+      INP_WIDTH,
+      INP_HEIGHT),
+      "GENERATE FEN",
+      &font
+    )
   ];
 
   let mut redraw = true;
@@ -171,9 +179,9 @@ fn main() {
                 0 => board.set_starting_position(),
                 1 => board.clear_board(),
                 2 => board.flip_board(),
+                3 => board.generate_fen(check1.get_values(), check2.get_values()),
                 _ => {}
               }
-              generate_fen_from_board(board.get_board(), dropdown.get_selected_item_idx() as usize);
             }
           }
           if !check1.event_listener(&event) {

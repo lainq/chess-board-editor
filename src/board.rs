@@ -1,4 +1,4 @@
-use crate::Rect;
+use crate::{Rect, fen::generate_fen_from_board};
 use allegro::{
   Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core,
   Event::{self, MouseButtonDown, MouseButtonUp},
@@ -402,7 +402,8 @@ impl Board {
     self.board = Default::default();
   }
 
-  pub fn get_board(&self) -> [[PlayerPiece; COLUMNS]; ROWS] {
-    self.board
+  pub fn generate_fen(&self, castle_white:(bool, bool), castle_black:(bool, bool)) {
+    generate_fen_from_board(self.board, self.player_pov, 
+      castle_white, castle_black);
   }
 }

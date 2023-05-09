@@ -157,4 +157,11 @@ impl CheckBoxGroup {
       None => 0.0,
     }
   }
+
+  pub fn get_values(&mut self) -> (bool,bool) {
+    let n:Vec<bool> = self.components.clone().into_iter().map(|iter| -> bool {
+      iter.is_checked()
+    }).collect();
+     if n.len() == 2 { (n[0], n[1]) } else {(false ,false)}
+  }
 }
