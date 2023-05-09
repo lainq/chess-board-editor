@@ -68,6 +68,3 @@ pub fn generate_fen_from_board(
   return fen_string;
 }
 
-// variants
-// castling
-// load from fen
