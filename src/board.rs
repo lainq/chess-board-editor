@@ -1,11 +1,11 @@
-use crate::{Rect, fen::generate_fen_from_board};
+use crate::{fen::generate_fen_from_board, Rect};
 use allegro::{
   Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core,
   Event::{self, MouseButtonDown, MouseButtonUp},
   Flag,
 };
 use allegro_primitives::PrimitivesAddon;
-use clipboard::{ClipboardProvider, ClipboardContext};
+use clipboard::{ClipboardContext, ClipboardProvider};
 
 pub const ROWS: usize = 8;
 pub const COLUMNS: usize = 8;
@@ -403,10 +403,9 @@ impl Board {
     self.board = Default::default();
   }
 
-  pub fn generate_fen(&self, castle_white:(bool, bool), castle_black:(bool, bool)) {
-    let notation = generate_fen_from_board(self.board, self.player_pov, 
-      castle_white, castle_black);
-    let mut ctx:ClipboardContext = ClipboardProvider::new().unwrap();
+  pub fn generate_fen(&self, castle_white: (bool, bool), castle_black: (bool, bool)) {
+    let notation = generate_fen_from_board(self.board, self.player_pov, castle_white, castle_black);
+    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
     ctx.set_contents(notation).unwrap();
   }
 }

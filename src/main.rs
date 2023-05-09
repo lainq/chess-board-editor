@@ -1,11 +1,13 @@
-use allegro::{Bitmap, Color, Core, Display, Event, EventQueue, Flag, Timer, FRAMELESS, BitmapDrawingFlags};
-use allegro_font::FontAddon;
+use allegro::{
+  Bitmap, BitmapDrawingFlags, Color, Core, Display, Event, EventQueue, Flag, Timer, FRAMELESS,
+};
+use allegro_font::{Font, FontAddon, FontDrawing};
 use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use allegro_ttf::{TtfAddon, TtfFlags};
 use board_editor::{
   board::Board, button::Button, checkbox::CheckBoxGroup, dropdown::Dropdown,
-  fen::generate_fen_from_board, Rect, modal_input::ModalInput,
+  fen::generate_fen_from_board, modal_input::ModalInput, Rect,
 };
 use std::path::PathBuf;
 
@@ -123,12 +125,7 @@ fn main() {
       &font,
     ),
     Button::new(
-      Rect::new(
-        dropdown_x,
-        y + INP_HEIGHT + 10.0,
-        INP_WIDTH,
-        INP_HEIGHT,
-      ),
+      Rect::new(dropdown_x, y + INP_HEIGHT + 10.0, INP_WIDTH, INP_HEIGHT),
       "CLEAR BOARD",
       &font,
     ),
@@ -143,13 +140,15 @@ fn main() {
       &font,
     ),
     Button::new(
-      Rect::new(dropdown_x,
-      y + (INP_HEIGHT * 3.0) + 30.0,
-      INP_WIDTH,
-      INP_HEIGHT),
+      Rect::new(
+        dropdown_x,
+        y + (INP_HEIGHT * 3.0) + 30.0,
+        INP_WIDTH,
+        INP_HEIGHT,
+      ),
       "COPY FEN TO CLIPBOARD",
-      &font
-    )
+      &font,
+    ),
   ];
 
   // check
@@ -158,14 +157,14 @@ fn main() {
     &display,
     DISPLAY_WIDTH,
     DISPLAY_HEIGHT,
-    50.0, false, &font
+    50.0,
+    false,
+    &font,
   );
-  inp.set_is_open(false);
-  let mut modal_input_box:Option<&ModalInput> = Some(&inp);
+  let mut modal_input_box: Option<&ModalInput> = Some(&inp);
 
   let mut redraw = true;
   let mut can_listen = true;
-  let mut status_message:Option<&str> = None;
 
   timer.start();
   'running: loop {
@@ -184,11 +183,8 @@ fn main() {
       match modal_input_box {
         Some(value) => {
           value.draw(&core, &primitives, &font);
-        },
+        }
         _ => {}
-      }
-      if let Some(msg) = &status_message {
-        core.draw_text()
       }
       core.flip_display();
       redraw = false;
@@ -204,7 +200,7 @@ fn main() {
         if can_listen {
           if !board.event_listener(&event) {
             dropdown.event_listener(&event);
-  
+
             for (idx, button) in buttons.iter_mut().enumerate() {
               if button.event_listener(&event) {
                 match idx {

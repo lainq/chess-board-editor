@@ -5,8 +5,8 @@ use allegro_primitives::PrimitivesAddon;
 
 const BORDER_THICKNESS: f32 = 4.0;
 
-pub struct Dropdown {
-  items: Vec<&'static str>,
+pub struct Dropdown<'a> {
+  items: Vec<&'a str>,
   selected_idx: i32,
   rect: Rect,
   is_focused: bool,
@@ -17,8 +17,8 @@ pub struct Dropdown {
   hover_element_idx: usize,
 }
 
-impl Dropdown {
-  pub fn new(rect: Rect, items: Vec<&'static str>, selected_idx: i32, font: &Font) -> Dropdown {
+impl<'a> Dropdown<'a> {
+  pub fn new(rect: Rect, items: Vec<&'a str>, selected_idx: i32, font: &Font) -> Dropdown<'a> {
     assert!(selected_idx == -1 || items.len() > selected_idx as usize);
     let mut val = Dropdown {
       items,

@@ -1,3 +1,5 @@
+use allegro_font::Font;
+
 pub mod board;
 pub mod button;
 pub mod checkbox;

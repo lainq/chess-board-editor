@@ -7,16 +7,16 @@ const BORDER_WIDTH: f32 = 3.0;
 const MARGIN: f32 = 10.0;
 
 #[derive(Clone)]
-pub struct CheckBox {
+pub struct CheckBox<'a> {
   rect: Rect,
-  text: &'static str,
+  text: &'a str,
   curr_state: bool,
   text_pos_x: f32,
   is_hovering: bool,
 }
 
-impl CheckBox {
-  pub fn new(x: f32, y: f32, size: f32, text: &'static str) -> CheckBox {
+impl<'a> CheckBox<'a> {
+  pub fn new(x: f32, y: f32, size: f32, text: &'a str) -> CheckBox<'a> {
     let mut checkbox = CheckBox {
       rect: Rect::new(x, y, size, size),
       text,
@@ -96,21 +96,21 @@ impl CheckBox {
   }
 }
 
-pub struct CheckBoxGroup {
-  components: Vec<CheckBox>,
-  label: &'static str,
+pub struct CheckBoxGroup<'a> {
+  components: Vec<CheckBox<'a>>,
+  label: &'a str,
   label_pos: (f32, f32),
 }
 
-impl CheckBoxGroup {
+impl<'a> CheckBoxGroup<'a> {
   pub fn new(
-    label: &'static str,
+    label: &'a str,
     x: f32,
     y: f32,
     box_size: f32,
-    texts: Vec<&'static str>,
+    texts: Vec<&'a str>,
     font: &Font,
-  ) -> CheckBoxGroup {
+  ) -> CheckBoxGroup<'a> {
     let th = font.get_line_height() as f32;
     let mut curr_x = x;
     let mut group = CheckBoxGroup {
@@ -157,10 +157,17 @@ impl CheckBoxGroup {
     }
   }
 
-  pub fn get_values(&mut self) -> (bool,bool) {
-    let n:Vec<bool> = self.components.clone().into_iter().map(|iter| -> bool {
-      iter.is_checked()
-    }).collect();
-     if n.len() == 2 { (n[0], n[1]) } else {(false ,false)}
+  pub fn get_values(&mut self) -> (bool, bool) {
+    let n: Vec<bool> = self
+      .components
+      .clone()
+      .into_iter()
+      .map(|iter| -> bool { iter.is_checked() })
+      .collect();
+    if n.len() == 2 {
+      (n[0], n[1])
+    } else {
+      (false, false)
+    }
   }
 }

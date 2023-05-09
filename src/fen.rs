@@ -12,17 +12,29 @@ fn get_character_for_piece(piece: Piece) -> char {
   }
 }
 
-fn get_castling_data_as_string(white:(bool,bool), black:(bool, bool)) -> String {
+fn get_castling_data_as_string(white: (bool, bool), black: (bool, bool)) -> String {
   let mut data = String::new();
-  if white.0 { data += "K" ;}
-  if white.1 { data += "Q";}
-  if black.0 { data += "k";}
-  if black.1 { data += "q";}
+  if white.0 {
+    data += "K";
+  }
+  if white.1 {
+    data += "Q";
+  }
+  if black.0 {
+    data += "k";
+  }
+  if black.1 {
+    data += "q";
+  }
   return data;
 }
 
-pub fn generate_fen_from_board(board: [[PlayerPiece; 8]; 8], player: usize,
-  castle_white:(bool, bool), castle_black:(bool, bool)) -> String {
+pub fn generate_fen_from_board(
+  board: [[PlayerPiece; 8]; 8],
+  player: usize,
+  castle_white: (bool, bool),
+  castle_black: (bool, bool),
+) -> String {
   let mut fen_string = String::new();
   let mut empty_block_count = 0;
   for i in 0..COLUMNS {
