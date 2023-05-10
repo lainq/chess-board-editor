@@ -1,6 +1,1 @@
-// todos
-
-
-- modal input box
-- generate board from fen
-- clippy
+// fix draw heirarchy

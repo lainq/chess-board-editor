@@ -1,11 +1,8 @@
-use allegro_font::Font;
-
 pub mod board;
 pub mod button;
 pub mod checkbox;
 pub mod dropdown;
 pub mod fen;
-pub mod modal_input;
 
 #[derive(Clone)]
 pub struct Rect {

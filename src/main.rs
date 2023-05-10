@@ -1,13 +1,10 @@
-use allegro::{
-  Bitmap, BitmapDrawingFlags, Color, Core, Display, Event, EventQueue, Flag, Timer, FRAMELESS,
-};
-use allegro_font::{Font, FontAddon, FontDrawing};
+use allegro::{Bitmap, Color, Core, Display, Event, EventQueue, Flag, Timer};
+use allegro_font::FontAddon;
 use allegro_image::ImageAddon;
 use allegro_primitives::PrimitivesAddon;
 use allegro_ttf::{TtfAddon, TtfFlags};
 use board_editor::{
-  board::Board, button::Button, checkbox::CheckBoxGroup, dropdown::Dropdown,
-  fen::generate_fen_from_board, modal_input::ModalInput, Rect,
+  board::Board, button::Button, checkbox::CheckBoxGroup, dropdown::Dropdown, Rect,
 };
 use std::path::PathBuf;
 
@@ -37,7 +34,7 @@ fn main() {
 
   let display = Display::new(&core, DISPLAY_WIDTH, DISPLAY_HEIGHT).unwrap();
   position_window_at_centre(&core, &display);
-  display.set_flag(FRAMELESS, true);
+  display.set_window_title("Board editor");
 
   let timer = Timer::new(&core, 1.0 / 30.0).unwrap();
   let queue = EventQueue::new(&core).unwrap();
@@ -151,26 +148,12 @@ fn main() {
     ),
   ];
 
-  // check
-  let mut inp = ModalInput::new(
-    &core,
-    &display,
-    DISPLAY_WIDTH,
-    DISPLAY_HEIGHT,
-    50.0,
-    false,
-    &font,
-  );
-  let mut modal_input_box: Option<&ModalInput> = Some(&inp);
-
   let mut redraw = true;
-  let mut can_listen = true;
 
   timer.start();
   'running: loop {
     if redraw && queue.is_empty() {
       core.clear_to_color(Color::from_rgb(22, 21, 18));
-      board.draw(&core, &primitives, &white_pieces, &black_pieces, &pointer);
 
       dropdown.draw(&core, &primitives, &font);
       for button in buttons.iter() {
@@ -179,13 +162,7 @@ fn main() {
 
       check1.draw(&core, &primitives, &font);
       check2.draw(&core, &primitives, &font);
-
-      match modal_input_box {
-        Some(value) => {
-          value.draw(&core, &primitives, &font);
-        }
-        _ => {}
-      }
+      board.draw(&core, &display, &primitives, &white_pieces, &black_pieces, &pointer);
       core.flip_display();
       redraw = false;
     }
@@ -194,27 +171,22 @@ fn main() {
       Event::DisplayClose { .. } => break 'running,
       Event::TimerTick { .. } => redraw = true,
       _ => {
-        if modal_input_box.is_some() {
-          can_listen = !(modal_input_box.unwrap().is_open());
-        }
-        if can_listen {
-          if !board.event_listener(&event) {
-            dropdown.event_listener(&event);
+        if !board.event_listener(&event) {
+          dropdown.event_listener(&event);
 
-            for (idx, button) in buttons.iter_mut().enumerate() {
-              if button.event_listener(&event) {
-                match idx {
-                  0 => board.set_starting_position(),
-                  1 => board.clear_board(),
-                  2 => board.flip_board(),
-                  3 => board.generate_fen(check1.get_values(), check2.get_values()),
-                  _ => {}
-                }
+          for (idx, button) in buttons.iter_mut().enumerate() {
+            if button.event_listener(&event) {
+              match idx {
+                0 => board.set_starting_position(),
+                1 => board.clear_board(),
+                2 => board.flip_board(),
+                3 => board.generate_fen(check1.get_values(), check2.get_values()),
+                _ => {}
               }
             }
-            if !check1.event_listener(&event) {
-              check2.event_listener(&event);
-            }
+          }
+          if !check1.event_listener(&event) {
+            check2.event_listener(&event);
           }
         }
       }

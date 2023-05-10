@@ -2,7 +2,7 @@ use crate::{fen::generate_fen_from_board, Rect};
 use allegro::{
   Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core,
   Event::{self, MouseButtonDown, MouseButtonUp},
-  Flag,
+  Flag, Display,
 };
 use allegro_primitives::PrimitivesAddon;
 use clipboard::{ClipboardContext, ClipboardProvider};
@@ -83,6 +83,7 @@ impl Board {
   pub fn draw(
     &self,
     core: &Core,
+    display: &Display,
     primitives: &PrimitivesAddon,
     white: &Bitmap,
     black: &Bitmap,
@@ -212,11 +213,14 @@ impl Board {
     match &self.selected_piece {
       Some(value) => {
         let (mut x, mut y) = (0, 0);
+        let window_pos = display.get_window_position();
         unsafe {
           allegro_sys::mouse::al_get_mouse_cursor_position(&mut x, &mut y);
         }
-        x -= 450 + (IMG_WIDTH as i32 / 2);
-        y -= 50 + (IMG_WIDTH as i32 / 2);
+
+        let img_w_half = (IMG_WIDTH as i32 / 2);
+        x -= window_pos.0 + img_w_half;
+        y -= window_pos.1 + img_w_half;
 
         core.draw_scaled_bitmap(
           if value.player == self.player_pov {

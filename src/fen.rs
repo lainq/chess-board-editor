@@ -26,7 +26,7 @@ fn get_castling_data_as_string(white: (bool, bool), black: (bool, bool)) -> Stri
   if black.1 {
     data += "q";
   }
-  return data;
+  data
 }
 
 pub fn generate_fen_from_board(
@@ -65,6 +65,5 @@ pub fn generate_fen_from_board(
   fen_string.push_str(if player == 0 { "b " } else { "w " });
   fen_string += get_castling_data_as_string(castle_white, castle_black).as_str();
   fen_string += " - 0 1";
-  return fen_string;
+  fen_string
 }
-
