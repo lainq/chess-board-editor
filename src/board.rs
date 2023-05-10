@@ -1,8 +1,8 @@
 use crate::{fen::generate_fen_from_board, Rect};
 use allegro::{
-  Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core,
+  Bitmap, BitmapDrawingFlags, BitmapLike, Color, Core, Display,
   Event::{self, MouseButtonDown, MouseButtonUp},
-  Flag, Display,
+  Flag,
 };
 use allegro_primitives::PrimitivesAddon;
 use clipboard::{ClipboardContext, ClipboardProvider};
@@ -218,7 +218,7 @@ impl Board {
           allegro_sys::mouse::al_get_mouse_cursor_position(&mut x, &mut y);
         }
 
-        let img_w_half = (IMG_WIDTH as i32 / 2);
+        let img_w_half = IMG_WIDTH as i32 / 2;
         x -= window_pos.0 + img_w_half;
         y -= window_pos.1 + img_w_half;
 
@@ -257,9 +257,11 @@ impl Board {
       curr_x + BOX_DIMENSION,
       curr_y + BOX_DIMENSION,
       if (n % 2 == 0) == switch {
-        Color::from_rgb(181, 136, 99)
-      } else {
         Color::from_rgb(240, 217, 182)
+
+      } else {
+        Color::from_rgb(181, 136, 99)
+
       },
     );
   }

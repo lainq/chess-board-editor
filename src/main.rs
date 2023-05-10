@@ -162,7 +162,14 @@ fn main() {
 
       check1.draw(&core, &primitives, &font);
       check2.draw(&core, &primitives, &font);
-      board.draw(&core, &display, &primitives, &white_pieces, &black_pieces, &pointer);
+      board.draw(
+        &core,
+        &display,
+        &primitives,
+        &white_pieces,
+        &black_pieces,
+        &pointer,
+      );
       core.flip_display();
       redraw = false;
     }
